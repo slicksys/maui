@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:vm="clr-namespace:Scheduler.App.ViewModels"
+             xmlns:dto="clr-namespace:Scheduler.Shared.Dtos;assembly=Scheduler.Shared"
+             xmlns:conv="clr-namespace:Scheduler.App.Converters"
+             xmlns:h="clr-namespace:Scheduler.App.Helpers"
+             x:Class="Scheduler.App.Views.SchedulePage"
+             x:DataType="vm:ScheduleViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="Schedule">
+
+    <ContentPage.Resources>
+        <conv:HexToColorConverter x:Key="HexToColor" />
+        <conv:StatusToColorConverter x:Key="StatusToColor" />
+        <conv:StatusToTextConverter x:Key="StatusToText" />
+        <conv:SmsStatusToColorConverter x:Key="SmsToColor" />
+        <conv:SmsStatusToGlyphConverter x:Key="SmsToGlyph" />
+        <toolkit:IsNotNullConverter x:Key="IsNotNull" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Hero header -->
+        <Border Grid.Row="0"
+                Background="{StaticResource HeroGradient}"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 0,0,28,28"
+                Padding="20,18,20,18">
+            <VerticalStackLayout Spacing="14">
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="6">
+                    <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                        <Label Text="{Binding MonthLabel}" Style="{StaticResource HeroText}" FontFamily="OpenSansSemibold" FontSize="24" />
+                        <Label Text="{Binding SelectedDateLabel}" Style="{StaticResource HeroText}" Opacity="0.8" FontSize="13" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1" Style="{StaticResource HeroIconButton}" Text="{x:Static h:Icons.ChevronLeft}" Command="{Binding PreviousWeekCommand}" SemanticProperties.Description="Previous week" />
+                    <Button Grid.Column="2" Style="{StaticResource HeroIconButton}" Text="{x:Static h:Icons.Today}" Command="{Binding TodayCommand}" SemanticProperties.Description="Today" />
+                    <Button Grid.Column="3" Style="{StaticResource HeroIconButton}" Text="{x:Static h:Icons.ChevronRight}" Command="{Binding NextWeekCommand}" SemanticProperties.Description="Next week" />
+                </Grid>
+
+                <!-- Week strip -->
+                <Grid ColumnDefinitions="*,*,*,*,*,*,*" ColumnSpacing="6" BindableLayout.ItemsSource="{Binding Days}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:DayItem">
+                            <Border Grid.Column="{Binding Index}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource WhiteGlass}"
+                                    Padding="0,10"
+                                    HeightRequest="72">
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ScheduleViewModel}}, Path=SelectDayCommand, x:DataType=vm:ScheduleViewModel}"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="{Binding DayName}" FontSize="11" HorizontalTextAlignment="Center" TextColor="{StaticResource White}" Opacity="0.85">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="TextColor" Value="{StaticResource Primary}" />
+                                                <Setter Property="Opacity" Value="1" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Label Text="{Binding DayNumber}" FontFamily="OpenSansSemibold" FontSize="18" HorizontalTextAlignment="Center" TextColor="{StaticResource White}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="TextColor" Value="{StaticResource Primary}" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Ellipse WidthRequest="6" HeightRequest="6" Fill="{StaticResource WhiteBrush}" HorizontalOptions="Center" IsVisible="{Binding HasAppointments}">
+                                        <Ellipse.Triggers>
+                                            <DataTrigger TargetType="Ellipse" Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource PinkBrush}" />
+                                            </DataTrigger>
+                                        </Ellipse.Triggers>
+                                    </Ellipse>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Appointment list -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,*">
+            <Border Grid.Row="0" Style="{StaticResource Banner}" IsVisible="{Binding HasError}">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.Error}" TextColor="{StaticResource White}" />
+                    <Label Grid.Column="1" Text="{Binding ErrorMessage}" TextColor="{StaticResource White}" FontSize="13" VerticalOptions="Center" />
+                    <Button Grid.Column="2" Style="{StaticResource IconButton}" Text="{x:Static h:Icons.Cancel}" TextColor="{StaticResource White}" Command="{Binding DismissErrorCommand}" WidthRequest="36" HeightRequest="36" />
+                </Grid>
+            </Border>
+
+            <RefreshView Grid.Row="1" Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+                <CollectionView ItemsSource="{Binding Appointments}" SelectionMode="None" Margin="16,12,16,0">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.Footer>
+                        <BoxView HeightRequest="90" Color="Transparent" />
+                    </CollectionView.Footer>
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout Spacing="8" Padding="24,60" HorizontalOptions="Center">
+                            <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.EventAvailable}" FontSize="56" HorizontalTextAlignment="Center" TextColor="{StaticResource PrimaryLight}" />
+                            <Label Text="Nothing scheduled" Style="{StaticResource SectionTitle}" HorizontalTextAlignment="Center" />
+                            <Label Text="Tap + to book an appointment. The client gets an SMS confirmation instantly." Style="{StaticResource Muted}" HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="dto:AppointmentDto">
+                            <Border Style="{StaticResource Card}" Padding="0">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ScheduleViewModel}}, Path=OpenCommand, x:DataType=vm:ScheduleViewModel}"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="6,Auto,*,Auto" ColumnSpacing="0">
+                                    <BoxView Grid.Column="0" Color="{Binding Color, Converter={StaticResource HexToColor}}" />
+                                    <VerticalStackLayout Grid.Column="1" Padding="14,14,0,14" Spacing="0" WidthRequest="78" VerticalOptions="Center">
+                                        <Label Text="{Binding StartLocal, StringFormat='{0:h:mm}'}" FontFamily="OpenSansSemibold" FontSize="20" />
+                                        <Label Text="{Binding StartLocal, StringFormat='{0:tt}'}" Style="{StaticResource Muted}" FontSize="12" />
+                                        <Label Text="{Binding EndLocal, StringFormat='– {0:h:mm tt}'}" Style="{StaticResource Muted}" FontSize="11" Margin="0,6,0,0" />
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="2" Padding="8,14,8,14" Spacing="4" VerticalOptions="Center">
+                                        <Label Text="{Binding Title}" Style="{StaticResource CardTitle}" />
+                                        <HorizontalStackLayout Spacing="6">
+                                            <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.Person}" FontSize="15" />
+                                            <Label Text="{Binding ClientName}" Style="{StaticResource Muted}" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout Spacing="6" IsVisible="{Binding Location, Converter={StaticResource IsNotNull}}">
+                                            <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.Place}" FontSize="15" />
+                                            <Label Text="{Binding Location}" Style="{StaticResource Muted}" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="3" Padding="0,14,14,14" Spacing="8" HorizontalOptions="End" VerticalOptions="Center">
+                                        <Border Style="{StaticResource Chip}" BackgroundColor="{Binding Status, Converter={StaticResource StatusToColor}}">
+                                            <Label Style="{StaticResource ChipText}" Text="{Binding Status, Converter={StaticResource StatusToText}}" />
+                                        </Border>
+                                        <HorizontalStackLayout Spacing="4" HorizontalOptions="End" IsVisible="{Binding LastSms, Converter={StaticResource IsNotNull}}">
+                                            <Label Style="{StaticResource Icon}" FontSize="16"
+                                                   Text="{Binding LastSms.Status, Converter={StaticResource SmsToGlyph}}"
+                                                   TextColor="{Binding LastSms.Status, Converter={StaticResource SmsToColor}}" />
+                                            <Label Text="SMS" Style="{StaticResource Muted}" FontSize="11" VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </RefreshView>
+        </Grid>
+
+        <Button Grid.Row="0" Grid.RowSpan="2" Style="{StaticResource Fab}" Text="{x:Static h:Icons.Add}" Command="{Binding AddCommand}" SemanticProperties.Description="New appointment" />
+    </Grid>
+</ContentPage>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="Scheduler.App.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:Scheduler.App.Views"
+    xmlns:h="clr-namespace:Scheduler.App.Helpers"
+    Title="Scheduler">
+
+    <TabBar>
+        <Tab Title="Schedule">
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialIcons" Glyph="{x:Static h:Icons.Event}" />
+            </Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:SchedulePage}" Route="SchedulePage" />
+        </Tab>
+        <Tab Title="Clients">
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialIcons" Glyph="{x:Static h:Icons.People}" />
+            </Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:ClientsPage}" Route="ClientsPage" />
+        </Tab>
+        <Tab Title="Settings">
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialIcons" Glyph="{x:Static h:Icons.Settings}" />
+            </Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}" Route="SettingsPage" />
+        </Tab>
+    </TabBar>
+
+</Shell>

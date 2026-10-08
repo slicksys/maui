@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:vm="clr-namespace:Scheduler.App.ViewModels"
+             xmlns:h="clr-namespace:Scheduler.App.Helpers"
+             x:Class="Scheduler.App.Views.ClientEditorPage"
+             x:DataType="vm:ClientEditorViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="{Binding PageTitle}">
+
+    <ContentPage.Resources>
+        <toolkit:InvertedBoolConverter x:Key="Not" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+        <Border Grid.Row="0" Background="{StaticResource HeroGradient}" StrokeThickness="0" StrokeShape="RoundRectangle 0,0,28,28" Padding="12,10,20,18">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6">
+                <Button Style="{StaticResource HeroIconButton}" Text="{x:Static h:Icons.ArrowBack}" Command="{Binding CancelCommand}" SemanticProperties.Description="Back" />
+                <Label Grid.Column="1" Text="{Binding PageTitle}" Style="{StaticResource HeroText}" FontFamily="OpenSansSemibold" FontSize="22" VerticalOptions="Center" />
+                <Button Grid.Column="2" Style="{StaticResource HeroIconButton}" Text="{x:Static h:Icons.Delete}" Command="{Binding DeleteCommand}" IsVisible="{Binding IsNew, Converter={StaticResource Not}}" SemanticProperties.Description="Delete" />
+            </Grid>
+        </Border>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,12,16,32" Spacing="14" MaximumWidthRequest="720">
+
+                <Border Style="{StaticResource Banner}" Margin="0" IsVisible="{Binding HasError}">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.Error}" TextColor="{StaticResource White}" />
+                        <Label Grid.Column="1" Text="{Binding ErrorMessage}" TextColor="{StaticResource White}" FontSize="13" VerticalOptions="Center" />
+                        <Button Grid.Column="2" Style="{StaticResource IconButton}" Text="{x:Static h:Icons.Cancel}" TextColor="{StaticResource White}" Command="{Binding DismissErrorCommand}" WidthRequest="36" HeightRequest="36" />
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="FIRST NAME" Style="{StaticResource FieldLabel}" />
+                                <Border Style="{StaticResource InputCard}">
+                                    <Entry Text="{Binding FirstName}" Placeholder="Ada" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="LAST NAME" Style="{StaticResource FieldLabel}" />
+                                <Border Style="{StaticResource InputCard}">
+                                    <Entry Text="{Binding LastName}" Placeholder="Lovelace" />
+                                </Border>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <Label Text="MOBILE NUMBER" Style="{StaticResource FieldLabel}" Margin="4,8,0,4" />
+                        <Border Style="{StaticResource InputCard}">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.Sms}" />
+                                <Entry Grid.Column="1" Text="{Binding PhoneNumber}" Placeholder="(555) 123-4567" Keyboard="Telephone" />
+                            </Grid>
+                        </Border>
+                        <Label Text="SMS confirmations are sent to this number. Ten-digit numbers are treated as +1." Style="{StaticResource Muted}" FontSize="12" />
+
+                        <Label Text="EMAIL" Style="{StaticResource FieldLabel}" Margin="4,8,0,4" />
+                        <Border Style="{StaticResource InputCard}">
+                            <Entry Text="{Binding Email}" Placeholder="Optional" Keyboard="Email" />
+                        </Border>
+
+                        <Label Text="NOTES" Style="{StaticResource FieldLabel}" Margin="4,8,0,4" />
+                        <Border Style="{StaticResource InputCard}" Padding="12,6">
+                            <Editor Text="{Binding Notes}" Placeholder="Preferences, allergies, anything useful" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Button Text="Save client" Command="{Binding SaveCommand}" IsEnabled="{Binding IsNotBusy}" />
+                <Button Text="Book an appointment" Style="{StaticResource SecondaryButton}" Command="{Binding BookCommand}" IsVisible="{Binding IsNew, Converter={StaticResource Not}}" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

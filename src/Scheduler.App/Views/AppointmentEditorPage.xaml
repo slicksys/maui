@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:vm="clr-namespace:Scheduler.App.ViewModels"
+             xmlns:dto="clr-namespace:Scheduler.Shared.Dtos;assembly=Scheduler.Shared"
+             xmlns:conv="clr-namespace:Scheduler.App.Converters"
+             xmlns:h="clr-namespace:Scheduler.App.Helpers"
+             x:Class="Scheduler.App.Views.AppointmentEditorPage"
+             x:DataType="vm:AppointmentEditorViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="{Binding PageTitle}">
+
+    <ContentPage.Resources>
+        <conv:HexToColorConverter x:Key="HexToColor" />
+        <conv:SmsStatusToColorConverter x:Key="SmsToColor" />
+        <conv:SmsStatusToGlyphConverter x:Key="SmsToGlyph" />
+        <conv:StatusToTextConverter x:Key="StatusToText" />
+        <toolkit:InvertedBoolConverter x:Key="Not" />
+        <toolkit:IsNotNullConverter x:Key="IsNotNull" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{StaticResource HeroGradient}" StrokeThickness="0" StrokeShape="RoundRectangle 0,0,28,28" Padding="12,10,20,18">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6">
+                <Button Style="{StaticResource HeroIconButton}" Text="{x:Static h:Icons.ArrowBack}" Command="{Binding CancelCommand}" SemanticProperties.Description="Back" />
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                    <Label Text="{Binding PageTitle}" Style="{StaticResource HeroText}" FontFamily="OpenSansSemibold" FontSize="22" />
+                    <Label Text="An SMS confirmation goes to the client's mobile" Style="{StaticResource HeroText}" Opacity="0.8" FontSize="12" IsVisible="{Binding IsNew}" />
+                </VerticalStackLayout>
+                <Button Grid.Column="2" Style="{StaticResource HeroIconButton}" Text="{x:Static h:Icons.Delete}" Command="{Binding DeleteCommand}" IsVisible="{Binding IsNew, Converter={StaticResource Not}}" SemanticProperties.Description="Delete" />
+            </Grid>
+        </Border>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,12,16,32" Spacing="14" MaximumWidthRequest="720">
+
+                <Border Style="{StaticResource Banner}" Margin="0" IsVisible="{Binding HasError}">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.Error}" TextColor="{StaticResource White}" />
+                        <Label Grid.Column="1" Text="{Binding ErrorMessage}" TextColor="{StaticResource White}" FontSize="13" VerticalOptions="Center" />
+                        <Button Grid.Column="2" Style="{StaticResource IconButton}" Text="{x:Static h:Icons.Cancel}" TextColor="{StaticResource White}" Command="{Binding DismissErrorCommand}" WidthRequest="36" HeightRequest="36" />
+                    </Grid>
+                </Border>
+
+                <!-- Who -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="CLIENT" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource InputCard}">
+                            <Picker Title="Choose a client"
+                                    ItemsSource="{Binding Clients}"
+                                    ItemDisplayBinding="{Binding FullName, x:DataType=dto:ClientDto}"
+                                    SelectedItem="{Binding SelectedClient}" />
+                        </Border>
+                        <HorizontalStackLayout Spacing="6">
+                            <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.Sms}" FontSize="16" />
+                            <Label Style="{StaticResource Muted}" VerticalOptions="Center"
+                                   Text="{Binding SelectedClient.PhoneNumber, StringFormat='Confirmation will be texted to {0}', FallbackValue='Pick a client to see where the SMS will go', TargetNullValue='Pick a client to see where the SMS will go'}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- What -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="TITLE" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource InputCard}">
+                            <Entry Text="{Binding Title}" Placeholder="e.g. Consultation, Haircut, Follow-up" />
+                        </Border>
+                        <Label Text="LOCATION" Style="{StaticResource FieldLabel}" Margin="4,8,0,4" />
+                        <Border Style="{StaticResource InputCard}">
+                            <Entry Text="{Binding Location}" Placeholder="Optional" />
+                        </Border>
+                        <Label Text="NOTES" Style="{StaticResource FieldLabel}" Margin="4,8,0,4" />
+                        <Border Style="{StaticResource InputCard}" Padding="12,6">
+                            <Editor Text="{Binding Notes}" Placeholder="Internal notes (not sent to the client)" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- When -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="DATE" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource InputCard}">
+                            <DatePicker Date="{Binding Date}" Format="ddd, MMM d yyyy" />
+                        </Border>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="STARTS" Style="{StaticResource FieldLabel}" />
+                                <Border Style="{StaticResource InputCard}">
+                                    <TimePicker Time="{Binding StartTime}" Format="h:mm tt" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="ENDS" Style="{StaticResource FieldLabel}" />
+                                <Border Style="{StaticResource InputCard}">
+                                    <TimePicker Time="{Binding EndTime}" Format="h:mm tt" />
+                                </Border>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Look -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="COLOUR TAG" Style="{StaticResource FieldLabel}" />
+                        <HorizontalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding ColorOptions}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ColorOption">
+                                    <Border WidthRequest="36" HeightRequest="36" StrokeShape="RoundRectangle 18" StrokeThickness="3"
+                                            Stroke="Transparent"
+                                            BackgroundColor="{Binding Hex, Converter={StaticResource HexToColor}}">
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource White}}" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AppointmentEditorViewModel}}, Path=SelectColorCommand, x:DataType=vm:AppointmentEditorViewModel}"
+                                                                  CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </HorizontalStackLayout>
+
+                        <VerticalStackLayout Spacing="10" IsVisible="{Binding IsNew, Converter={StaticResource Not}}" Margin="0,8,0,0">
+                            <Label Text="STATUS" Style="{StaticResource FieldLabel}" />
+                            <Border Style="{StaticResource InputCard}">
+                                <Picker ItemsSource="{Binding Statuses}" SelectedItem="{Binding Status}" />
+                            </Border>
+                            <Label Text="Changing the time re-sends a confirmation. Cancelling sends a cancellation SMS." Style="{StaticResource Muted}" FontSize="12" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- SMS status (existing appointments) -->
+                <Border Style="{StaticResource Card}" IsVisible="{Binding HasSms}">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                        <Label Style="{StaticResource Icon}" FontSize="28" VerticalOptions="Start"
+                               Text="{Binding LastSms.Status, Converter={StaticResource SmsToGlyph}}"
+                               TextColor="{Binding LastSms.Status, Converter={StaticResource SmsToColor}}" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="3">
+                            <Label Text="{Binding LastSms.Status, StringFormat='Last SMS: {0}'}" Style="{StaticResource CardTitle}" />
+                            <Label Text="{Binding LastSms.ToPhoneNumber}" Style="{StaticResource Muted}" />
+                            <Label Text="{Binding LastSms.Error}" TextColor="{StaticResource Coral}" FontSize="12" IsVisible="{Binding LastSms.Error, Converter={StaticResource IsNotNull}}" />
+                            <Label Text="{Binding LastSms.Body}" Style="{StaticResource Muted}" FontSize="12" Margin="0,6,0,0" />
+                        </VerticalStackLayout>
+                        <Button Grid.Column="2" Style="{StaticResource SecondaryButton}" Text="Resend" Command="{Binding ResendSmsCommand}" VerticalOptions="Start" Padding="14,8" MinimumHeightRequest="40" />
+                    </Grid>
+                </Border>
+
+                <Button Text="{Binding SaveText}" Command="{Binding SaveCommand}" IsEnabled="{Binding IsNotBusy}" Margin="0,6,0,0" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

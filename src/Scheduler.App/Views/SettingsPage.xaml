@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:vm="clr-namespace:Scheduler.App.ViewModels"
+             xmlns:h="clr-namespace:Scheduler.App.Helpers"
+             x:Class="Scheduler.App.Views.SettingsPage"
+             x:DataType="vm:SettingsViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="Settings">
+
+    <ContentPage.Resources>
+        <toolkit:IsStringNotNullOrEmptyConverter x:Key="IsNotNullOrEmpty" />
+        <Style x:Key="ThemeChoice" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+            <Setter Property="Padding" Value="10,12" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        <Style x:Key="ThemeChoiceSelected" TargetType="Button">
+            <Setter Property="Padding" Value="10,12" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+            <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+            <Setter Property="TextColor" Value="{StaticResource White}" />
+            <Setter Property="MinimumHeightRequest" Value="50" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+        <Border Grid.Row="0" Background="{StaticResource HeroGradient}" StrokeThickness="0" StrokeShape="RoundRectangle 0,0,28,28" Padding="20,18,20,20">
+            <VerticalStackLayout Spacing="2">
+                <Label Text="Settings" Style="{StaticResource HeroText}" FontFamily="OpenSansSemibold" FontSize="24" />
+                <Label Text="Appearance and server connection" Style="{StaticResource HeroText}" Opacity="0.8" FontSize="13" />
+            </VerticalStackLayout>
+        </Border>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,12,16,32" Spacing="14" MaximumWidthRequest="720">
+
+                <Border Style="{StaticResource Banner}" Margin="0" IsVisible="{Binding HasError}">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.Error}" TextColor="{StaticResource White}" />
+                        <Label Grid.Column="1" Text="{Binding ErrorMessage}" TextColor="{StaticResource White}" FontSize="13" VerticalOptions="Center" />
+                        <Button Grid.Column="2" Style="{StaticResource IconButton}" Text="{x:Static h:Icons.Cancel}" TextColor="{StaticResource White}" Command="{Binding DismissErrorCommand}" WidthRequest="36" HeightRequest="36" />
+                    </Grid>
+                </Border>
+
+                <!-- Appearance -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.Palette}" TextColor="{StaticResource Primary}" />
+                            <Label Text="Appearance" Style="{StaticResource SectionTitle}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <Label Text="Choose light, dark, or follow the device setting." Style="{StaticResource Muted}" />
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                            <Button Text="System" Command="{Binding SetThemeCommand}" CommandParameter="System" Style="{StaticResource ThemeChoice}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsSystemTheme}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                        <Setter Property="TextColor" Value="{StaticResource White}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="1" Text="Light" Command="{Binding SetThemeCommand}" CommandParameter="Light" Style="{StaticResource ThemeChoice}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsLightTheme}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                        <Setter Property="TextColor" Value="{StaticResource White}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="2" Text="Dark" Command="{Binding SetThemeCommand}" CommandParameter="Dark" Style="{StaticResource ThemeChoice}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsDarkTheme}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                        <Setter Property="TextColor" Value="{StaticResource White}" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Server -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.CloudDone}" TextColor="{StaticResource Teal}" />
+                            <Label Text="Scheduler server" Style="{StaticResource SectionTitle}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <Label Text="The app talks to the Scheduler API, which stores appointments in SQL Server and sends the SMS messages." Style="{StaticResource Muted}" />
+                        <Label Text="API URL" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource InputCard}">
+                            <Entry Text="{Binding ApiBaseUrl}" Placeholder="{Binding DefaultApiBaseUrl}" Keyboard="Url" />
+                        </Border>
+                        <Label Text="{Binding DefaultApiBaseUrl, StringFormat='Default for this device: {0}. On a physical phone use the LAN address of the PC running the API.'}" Style="{StaticResource Muted}" FontSize="12" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <Button Text="Save &amp; test" Command="{Binding SaveApiUrlCommand}" IsEnabled="{Binding IsNotBusy}" />
+                            <Button Grid.Column="1" Text="Reset" Style="{StaticResource SecondaryButton}" Command="{Binding ResetApiUrlCommand}" />
+                        </Grid>
+                        <HorizontalStackLayout Spacing="8" IsVisible="{Binding ConnectionStatus, Converter={StaticResource IsNotNullOrEmpty}}">
+                            <Label Style="{StaticResource Icon}" Text="{x:Static h:Icons.CheckCircle}" TextColor="{StaticResource Emerald}" IsVisible="{Binding ConnectionOk}" />
+                            <Label Text="{Binding ConnectionStatus}" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="{Binding AppVersion}" Style="{StaticResource Muted}" FontSize="12" HorizontalTextAlignment="Center" Margin="0,8,0,0" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
