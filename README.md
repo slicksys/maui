@@ -32,7 +32,18 @@ phones and desktops.
 - SQL Server (LocalDB, Express, full, or Azure SQL). The default connection string uses
   `(localdb)\SchedulerLocal`; create it with `SqlLocalDB create SchedulerLocal -s` or edit
   `src/Scheduler.Api/appsettings.json`.
-- For Android: Android SDK + JDK (`dotnet build src/Scheduler.App -f net10.0-android -t:InstallAndroidDependencies -p:AndroidSdkDirectory=C:\Android\android-sdk -p:JavaSdkDirectory=C:\Android\jdk -p:AcceptAndroidSDKLicenses=True` installs them)
+- For Android: a **JDK 21** (JDK 25 is rejected by the Android toolchain) and the Android SDK.
+  Without admin rights, unzip [Microsoft OpenJDK 21](https://aka.ms/download-jdk/microsoft-jdk-21-windows-x64.zip)
+  into `C:\Android\` and let .NET download the SDK:
+
+  ```powershell
+  dotnet build src/Scheduler.App -f net10.0-android -t:InstallAndroidDependencies `
+      -p:AndroidSdkDirectory=C:\Android\android-sdk `
+      "-p:JavaSdkDirectory=C:\Android\jdk-21.0.12.1+1" `
+      -p:AcceptAndroidSDKLicenses=True
+  ```
+
+  Then build/run with the same two `-p:` properties (or set `ANDROID_HOME` and `JAVA_HOME`).
 - A Twilio account for real SMS (optional, see below)
 
 ## Run the API
@@ -73,11 +84,14 @@ the time zone used inside the SMS.
 dotnet build src/Scheduler.App -f net10.0-windows10.0.19041.0 -t:Run
 ```
 
-**Android (emulator)**
+**Android (emulator or USB device)**
 
 ```powershell
-dotnet build src/Scheduler.App -f net10.0-android -t:Run
+dotnet build src/Scheduler.App -f net10.0-android -t:Run `
+    -p:AndroidSdkDirectory=C:\Android\android-sdk "-p:JavaSdkDirectory=C:\Android\jdk-21.0.12.1+1"
 ```
+
+Or open `Scheduler.sln` in Visual Studio 2022 17.14+ and pick an Android emulator as the target.
 
 The app defaults to `http://localhost:5180` on Windows and `http://10.0.2.2:5180` on the Android
 emulator (the emulator's alias for the host PC). On a physical phone open **Settings → API URL**
