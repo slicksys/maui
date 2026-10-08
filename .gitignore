@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Stray SDK copies from mangled -p: paths
+src/Scheduler.App/Android*/
